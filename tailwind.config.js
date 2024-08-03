@@ -4,7 +4,12 @@ module.exports = {
     './src/**/*.{js,ts,jsx,tsx,astro}',
   ],
   theme: {
-    extend: {},
+    extend: {
+      transitionProperty: {
+        'colors': 'background-color, border-color, color, fill, stroke',
+      },
+    },
   },
   plugins: [],
+  darkMode: 'class', // Enable class-based dark mode
 }
