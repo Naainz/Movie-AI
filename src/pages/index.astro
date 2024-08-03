@@ -1,0 +1,24 @@
+---
+// Import the layout component
+import Layout from '../layouts/Layout.astro';
+
+// Define the categories array
+const categories = ["Action", "Comedy", "Drama", "Horror", "Sci-Fi"];
+---
+
+<Layout>
+  <div class="container mx-auto p-4">
+    <h1 class="text-3xl font-bold mb-4">Movie Recommendations</h1>
+    <form id="recommendationForm">
+      <label for="category" class="block text-lg font-medium mb-2">Select a category:</label>
+      <select id="category" name="category" class="block w-full p-2 border border-gray-300 rounded">
+        {categories.map(category => (
+          <option value={category}>{category}</option>
+        ))}
+      </select>
+      <button type="submit" class="mt-4 bg-blue-500 text-white py-2 px-4 rounded">Get Recommendations</button>
+    </form>
+    <div id="recommendations" class="mt-8"></div>
+  </div>
+  <script src="/src/scripts/recommendations.js"></script>
+</Layout>

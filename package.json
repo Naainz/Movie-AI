@@ -1,0 +1,21 @@
+{
+  "name": "beneficial-belt",
+  "type": "module",
+  "version": "0.0.1",
+  "scripts": {
+    "dev": "astro dev",
+    "start": "astro dev",
+    "build": "astro build",
+    "preview": "astro preview",
+    "astro": "astro"
+  },
+  "dependencies": {
+    "astro": "^4.13.1",
+    "dotenv": "^16.4.5"
+  },
+  "devDependencies": {
+    "autoprefixer": "^10.4.20",
+    "postcss": "^8.4.40",
+    "tailwindcss": "^3.4.7"
+  }
+}
