@@ -1,22 +1,46 @@
 ---
 import Layout from '../layouts/Layout.astro';
 
-const categories = ["Action", "Comedy", "Drama", "Horror", "Sci-Fi"];
+const images = [
+  "/images/hero.png",
+  // Add more image paths as needed
+];
+
+const testimonials = [
+  {
+    name: "Everyone Ever",
+    text: "Movie-AI helped me find movies I absolutely love! The recommendations are spot-on."
+  },
+  {
+    name: "Every Movie Lover",
+    text: "The AI recommendations are fantastic. I've discovered so many great movies thanks to Movie-AI."
+  }
+  // Add more testimonials as needed
+];
 ---
 
 <Layout>
-  <div class="container mx-auto p-4">
-    <h1 class="text-3xl font-bold mb-4">Movie Recommendations</h1>
-    <form id="recommendationForm">
-      <label for="category" class="block text-lg font-medium mb-2">Select a category:</label>
-      <select id="category" name="category" class="block w-full p-2 border border-gray-300 rounded">
-        {categories.map(category => (
-          <option value={category}>{category}</option>
+  <div class="p-4">
+    <div class="hero bg-gray-200 dark:bg-gray-700 p-8 rounded-lg mb-8">
+      <h1 class="text-4xl font-bold mb-4 text-left">Welcome to Movie-AI</h1>
+      <p class="text-lg mb-6 text-left">
+        Discover personalized movie recommendations powered by AI. Explore a vast collection of movies across different genres and find your next favorite movie. <a href="/demo" class="text-blue-500 dark:text-blue-400 underline">Try it now</a>
+      </p>
+      <div class="grid grid-cols-3 md:grid-cols-3 gap-4">
+        {images.map(image => (
+          <img src={image} alt="Movie" class="w-full h-auto rounded-lg shadow-md" />
         ))}
-      </select>
-      <button type="submit" class="mt-4 bg-blue-500 text-white py-2 px-4 rounded">Get Recommendations</button>
-    </form>
-    <div id="recommendations" class="mt-8"></div>
+      </div>
+    </div>
+    <div class="testimonials mt-16">
+      <div class="space-y-4">
+        {testimonials.map(testimonial => (
+          <div class="bg-white dark:bg-gray-800 p-4 rounded-lg shadow-md">
+            <p class="text-left italic">"{testimonial.text}"</p>
+            <p class="text-left font-bold mt-2">- {testimonial.name}</p>
+          </div>
+        ))}
+      </div>
+    </div>
   </div>
-  <script src="/src/scripts/recommendations.js"></script>
 </Layout>

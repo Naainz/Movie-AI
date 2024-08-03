@@ -1,10 +1,12 @@
 /* src/styles/global.css */
+@import url('https://fonts.cdnfonts.com/css/satoshi');
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 html {
   @apply transition-colors duration-500;
+  font-family: 'Satoshi', sans-serif;
 }
 
 body {
