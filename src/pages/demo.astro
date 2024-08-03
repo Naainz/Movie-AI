@@ -1,0 +1,45 @@
+---
+import Layout from '../layouts/Layout.astro';
+
+const genres = [
+  "Action", "Comedy", "Drama", "Horror", "Sci-Fi", "Thriller", "Adventure",
+  "Animation", "Biography", "Crime", "Documentary", "Family", "Fantasy", 
+  "History", "Musical", "Mystery", "Romance", "Sport", "War", "Western"
+];
+---
+
+<Layout>
+  <div class="p-4">
+    <h1 class="text-3xl font-bold mb-4">Movie Recommendation Demo</h1>
+    <p class="mb-6">Select the genres you're interested in and click "Send to Analyser" to get movie recommendations.</p>
+    <div id="genreForm" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 mb-6">
+      {genres.map(genre => (
+        <button type="button" id={genre} class="genre-toggle bg-gray-200 text-gray-900 py-2 px-4 rounded border border-gray-300 hover:bg-gray-300 transition-colors duration-300">
+          {genre}
+        </button>
+      ))}
+    </div>
+    <button type="button" class="bg-blue-500 text-white py-2 px-4 rounded hover:bg-blue-600 focus:outline-none" onclick="sendToAnalyser()">Send to Analyser</button>
+  </div>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      const genreButtons = document.querySelectorAll('.genre-toggle');
+      genreButtons.forEach(button => {
+        button.addEventListener('click', function() {
+          button.classList.toggle('bg-orange-500');
+          button.classList.toggle('text-white');
+          button.classList.toggle('border-orange-500');
+          button.classList.toggle('bg-gray-200');
+          button.classList.toggle('text-gray-900');
+          button.classList.toggle('border-gray-300');
+        });
+      });
+    });
+
+    function sendToAnalyser() {
+      const selectedGenres = Array.from(document.querySelectorAll('.genre-toggle.bg-orange-500')).map(el => el.id);
+      alert('Selected genres: ' + selectedGenres.join(', '));
+    }
+  </script>
+</Layout>

@@ -12,8 +12,8 @@ export async function post({ request }) {
       'Authorization': `Bearer ${OPENAI_API_KEY}`,
     },
     body: JSON.stringify({
-      prompt: `Give me some movie recommendations for the category: ${category}.`,
-      max_tokens: 50,
+      prompt: `Give me some movie recommendations for the following categories: ${category}. The format I want you to include is: "Movie Title (Year) And a brief description of the movie."`,
+      max_tokens: 100,
     }),
   });
 
