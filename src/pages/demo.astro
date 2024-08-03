@@ -11,15 +11,31 @@ const genres = [
 <Layout>
   <div class="p-4">
     <h1 class="text-3xl font-bold mb-4">Movie Recommendation Demo</h1>
-    <p class="mb-6">Select the genres you're interested in and click "Send to Analyser" to get movie recommendations.</p>
-    <div id="genreForm" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 mb-6">
-      {genres.map(genre => (
-        <button type="button" id={genre} class="genre-toggle bg-gray-200 text-gray-900 py-2 px-4 rounded border border-gray-300 hover:bg-gray-300 transition-colors duration-300">
-          {genre}
-        </button>
-      ))}
+    <div id="content">
+      <p class="mb-6">Select the genres you're interested in and click "Send to Analyser" to get movie recommendations.</p>
+      <div id="genreForm" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 mb-6">
+        {genres.map(genre => (
+          <button type="button" id={genre} class="genre-toggle bg-gray-200 text-gray-900 py-2 px-4 rounded border border-gray-300 hover:bg-gray-300 transition-colors duration-300">
+            {genre}
+          </button>
+        ))}
+      </div>
+      <button type="button" class="bg-blue-500 text-white py-2 px-4 rounded hover:bg-blue-600 focus:outline-none" id="analyser-button">Send to Analyser</button>
     </div>
-    <button type="button" class="bg-blue-500 text-white py-2 px-4 rounded hover:bg-blue-600 focus:outline-none" onclick="sendToAnalyser()">Send to Analyser</button>
+    <div id="loading" class="hidden text-center mt-8">
+      <i class="fas fa-spinner fa-spin text-4xl text-blue-500"></i>
+      <p class="mt-4 text-xl" id="loading-text"></p>
+    </div>
+    <div id="results" class="hidden mt-8">
+      <h2 class="text-2xl font-bold mb-4">Recommendations</h2>
+      <div id="recommendations" class="grid grid-cols-1 gap-4">
+        <!-- Recommendations will be injected here -->
+      </div>
+      <div id="debug" class="mt-8 p-4 bg-gray-100 dark:bg-gray-800 rounded-lg">
+        <h3 class="text-xl font-bold mb-2">Debug Info</h3>
+        <pre id="raw-response" class="text-sm"></pre>
+      </div>
+    </div>
   </div>
 
   <script>
@@ -35,11 +51,75 @@ const genres = [
           button.classList.toggle('border-gray-300');
         });
       });
+
+      document.getElementById('analyser-button').addEventListener('click', sendToAnalyser);
     });
 
-    function sendToAnalyser() {
+    async function sendToAnalyser() {
       const selectedGenres = Array.from(document.querySelectorAll('.genre-toggle.bg-orange-500')).map(el => el.id);
-      alert('Selected genres: ' + selectedGenres.join(', '));
+      document.getElementById('content').classList.add('fade-out');
+      setTimeout(() => {
+        document.getElementById('content').classList.add('hidden');
+        document.getElementById('loading-text').innerText = `Get ready! You selected: ${selectedGenres.join(', ')}`;
+        const loading = document.getElementById('loading');
+        loading.classList.remove('hidden');
+        loading.classList.add('fade-in');
+        fetchRecommendations(selectedGenres);
+      }, 500);
+    }
+
+    async function fetchRecommendations(categories) {
+      const response = await fetch('/api/recommend.js', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ categories: categories.join(', ') }),
+      });
+      const data = await response.json();
+      const rawResponse = data.rawResponse;
+      const recommendations = data.recommendations;
+      const recommendationsContainer = document.getElementById('recommendations');
+      const rawResponseContainer = document.getElementById('raw-response');
+
+      if (recommendations.length > 0) {
+        recommendations.forEach(rec => {
+          const [title, ...description] = rec.split(' And ');
+          const recommendationElement = document.createElement('div');
+          recommendationElement.classList.add('recommendation', 'flex', 'items-start', 'p-4', 'bg-gray-200', 'dark:bg-gray-700', 'rounded-lg', 'shadow-md');
+          recommendationElement.innerHTML = `
+            <img src="https://via.placeholder.com/150" alt="${title}" class="w-1/4 h-auto rounded-lg shadow-md">
+            <div class="ml-4">
+              <h3 class="text-xl font-bold">${title}</h3>
+              <p class="mt-2">${description.join(' And ')}</p>
+            </div>
+          `;
+          recommendationsContainer.appendChild(recommendationElement);
+        });
+        rawResponseContainer.innerText = rawResponse;
+        document.getElementById('loading').classList.add('hidden');
+        document.getElementById('results').classList.remove('hidden');
+        document.getElementById('results').classList.add('fade-in');
+      } else {
+        alert('Failed to get recommendations.');
+      }
     }
   </script>
+
+  <style>
+    .hidden {
+      display: none;
+    }
+    .fade-out {
+      opacity: 0;
+      transition: opacity 0.5s ease;
+    }
+    .fade-in {
+      opacity: 1;
+      transition: opacity 0.5s ease;
+    }
+    .recommendation img {
+      height: 90%;
+    }
+  </style>
 </Layout>

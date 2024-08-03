@@ -1,37 +1,56 @@
 // src/pages/api/recommend.js
-
 import { OPENAI_API_KEY } from '../../utils/env';
 
 export async function post({ request }) {
-  const { category } = await request.json();
+  try {
+    const { categories } = await request.json();
 
-  const response = await fetch('https://api.openai.com/v1/engines/gpt-4/completions', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'Authorization': `Bearer ${OPENAI_API_KEY}`,
-    },
-    body: JSON.stringify({
-      prompt: `Give me some movie recommendations for the following categories: ${category}. The format I want you to include is: "Movie Title (Year) And a brief description of the movie."`,
-      max_tokens: 100,
-    }),
-  });
-
-  if (!response.ok) {
-    return {
-      status: 500,
-      body: {
-        error: 'Failed to fetch recommendations',
+    const response = await fetch('https://api.openai.com/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${OPENAI_API_KEY}`,
       },
-    };
-  }
+      body: JSON.stringify({
+        model: "gpt-4o-mini",
+        messages: [
+          {
+            role: "system",
+            content: "You are a helpful assistant."
+          },
+          {
+            role: "user",
+            content: `Give me some movie recommendations for the following categories: ${categories}. The format I want you to include is: "Movie Title (Year) And a brief description of the movie." You should provide 3 recommendations correctly fitting the categories. How you should split the recommendations is by using: (split) for each movie.`
+          }
+        ],
+      }),
+    });
 
-  const data = await response.json();
-  const recommendations = data.choices[0].text.trim().split('\n');
+    if (!response.ok) {
+      throw new Error('Failed to fetch recommendations');
+    }
 
-  return {
-    body: {
+    const data = await response.json();
+    const rawResponse = data.choices[0].message.content;
+    const recommendations = rawResponse.split('(split)').map(rec => rec.trim());
+
+    return new Response(JSON.stringify({
       recommendations,
-    },
-  };
+      rawResponse,
+    }), {
+      status: 200,
+      headers: {
+        'Content-Type': 'application/json'
+      }
+    });
+  } catch (error) {
+    return new Response(JSON.stringify({
+      error: error.message,
+    }), {
+      status: 500,
+      headers: {
+        'Content-Type': 'application/json'
+      }
+    });
+  }
 }
