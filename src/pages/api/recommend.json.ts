@@ -20,7 +20,7 @@ export const POST: APIRoute = async ({ request }) => {
           },
           {
             role: "user",
-            content: `Give me some movie recommendations for the following categories: ${categories}. The format I want you to include is: "Movie Title (Year) And a brief description of the movie." You should provide 3 recommendations correctly fitting the categories. How you should split the recommendations is by using: (split) for each movie.`
+            content: `Give me some movie recommendations for the following categories: ${categories}. The format I want you to include is: "Movie Title (Year) And a brief description of the movie." You should provide 3 recommendations correctly fitting the categories. How you should split the recommendations is by using: (split) for each movie. You must not say anything else other than the recommendations.`
           }
         ],
       }),

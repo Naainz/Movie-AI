@@ -1,5 +1,8 @@
 ---
 import Layout from '../layouts/Layout.astro';
+import { loadEnv } from 'vite';
+
+const env = loadEnv(import.meta.env.MODE, process.cwd());
 
 const genres = [
   "Action", "Comedy", "Drama", "Horror", "Sci-Fi", "Thriller", "Adventure",
@@ -65,37 +68,78 @@ const genres = [
     }
 
     async function fetchRecommendations(categories) {
-      const response = await fetch('/api/recommend.json', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ categories: categories.join(', ') }),
-      });
-      const data = await response.json();
-      const recommendations = data.recommendations.slice(0, 3); // Limit to 3 recommendations
-      const recommendationsContainer = document.getElementById('recommendations');
+      try {
+        const response = await fetch('/api/recommend.json', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ categories: categories.join(', ') }),
+        });
+        const data = await response.json();
+        console.log('Response Data:', data); // Debugging
 
-      recommendationsContainer.innerHTML = ''; // Clear previous recommendations
-      if (recommendations.length > 0) {
-        recommendations.forEach(rec => {
-          const [title, ...description] = rec.split(' And ');
+        if (!data.recommendations || data.recommendations.length === 0) {
+          alert('No recommendations found.');
+          document.getElementById('loading').classList.add('hidden');
+          return;
+        }
+
+        const cleanedRecommendations = data.recommendations.map(rec => rec.replace(/"/g, '')).slice(0, 3);
+        console.log('Cleaned Recommendations:', cleanedRecommendations); // Debugging
+
+        const recommendationsContainer = document.getElementById('recommendations');
+        recommendationsContainer.innerHTML = ''; // Clear previous recommendations
+
+        for (let rec of cleanedRecommendations) {
+          console.log('Processing Recommendation:', rec); // Debugging
+          const match = rec.match(/^([^()]+) \((\d{4})\) - (.+)$/);
+          if (!match) {
+            console.log('Failed to match recommendation:', rec); // Debugging
+            continue;
+          }
+
+          const title = `${match[1]} (${match[2]})`; // Title and Year
+          const description = match[3]; // Description
+
+          // Create the recommendation element with placeholder image
           const recommendationElement = document.createElement('div');
           recommendationElement.classList.add('recommendation', 'flex', 'items-start', 'p-4', 'bg-gray-200', 'dark:bg-gray-700', 'rounded-lg', 'shadow-md');
           recommendationElement.innerHTML = `
             <img src="https://via.placeholder.com/150" alt="${title}" class="w-1/4 h-auto rounded-lg shadow-md">
             <div class="ml-4">
               <h3 class="text-xl font-bold">${title}</h3>
-              <p class="mt-2 text-gray-600">${description.join(' And ')}</p>
+              <p class="mt-2 text-gray-600">${description}</p>
             </div>
           `;
           recommendationsContainer.appendChild(recommendationElement);
-        });
+
+          // Fetch and update the poster image
+          fetchMoviePoster(match[1]).then(poster => {
+            recommendationElement.querySelector('img').src = poster;
+          });
+        }
+
         document.getElementById('loading').classList.add('hidden');
         document.getElementById('results').classList.remove('hidden');
         document.getElementById('results').classList.add('fade-in');
-      } else {
-        alert('Failed to get recommendations.');
+      } catch (error) {
+        console.error('Error fetching recommendations:', error);
+        alert('An error occurred while fetching recommendations.');
+        document.getElementById('loading').classList.add('hidden');
+      }
+    }
+
+    async function fetchMoviePoster(title) {
+      try {
+        const apiKey = env.VITE_OMDB_API_KEY; // Use the OMDB API key from environment variables
+        const response = await fetch(`https://www.omdbapi.com/?t=${encodeURIComponent(title)}&apikey=${apiKey}`);
+        const data = await response.json();
+        console.log('OMDB API Response:', data); // Debugging
+        return data.Poster !== 'N/A' ? data.Poster : 'https://via.placeholder.com/150';
+      } catch (error) {
+        console.error('Error fetching movie poster:', error);
+        return 'https://via.placeholder.com/150';
       }
     }
   </script>
