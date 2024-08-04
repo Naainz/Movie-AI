@@ -1,7 +1,7 @@
-// src/pages/api/recommend.js
 import { OPENAI_API_KEY } from '../../utils/env';
+import type { APIRoute } from 'astro';
 
-export async function post({ request }) {
+export const POST: APIRoute = async ({ request }) => {
   try {
     const { categories } = await request.json();
 
@@ -12,7 +12,7 @@ export async function post({ request }) {
         'Authorization': `Bearer ${OPENAI_API_KEY}`,
       },
       body: JSON.stringify({
-        model: "gpt-4o-mini",
+        model: "gpt-4",
         messages: [
           {
             role: "system",
@@ -27,30 +27,32 @@ export async function post({ request }) {
     });
 
     if (!response.ok) {
-      throw new Error('Failed to fetch recommendations');
+      return new Response(
+        JSON.stringify({
+          error: 'Failed to fetch recommendations',
+        }),
+        { status: 500 }
+      );
     }
 
     const data = await response.json();
     const rawResponse = data.choices[0].message.content;
     const recommendations = rawResponse.split('(split)').map(rec => rec.trim());
 
-    return new Response(JSON.stringify({
-      recommendations,
-      rawResponse,
-    }), {
-      status: 200,
-      headers: {
-        'Content-Type': 'application/json'
-      }
-    });
+    return new Response(
+      JSON.stringify({
+        recommendations,
+        rawResponse,
+      }),
+      { status: 200 }
+    );
+
   } catch (error) {
-    return new Response(JSON.stringify({
-      error: error.message,
-    }), {
-      status: 500,
-      headers: {
-        'Content-Type': 'application/json'
-      }
-    });
+    return new Response(
+      JSON.stringify({
+        error: 'An error occurred while processing your request',
+      }),
+      { status: 500 }
+    );
   }
-}
+};

@@ -31,10 +31,6 @@ const genres = [
       <div id="recommendations" class="grid grid-cols-1 gap-4">
         <!-- Recommendations will be injected here -->
       </div>
-      <div id="debug" class="mt-8 p-4 bg-gray-100 dark:bg-gray-800 rounded-lg">
-        <h3 class="text-xl font-bold mb-2">Debug Info</h3>
-        <pre id="raw-response" class="text-sm"></pre>
-      </div>
     </div>
   </div>
 
@@ -69,7 +65,7 @@ const genres = [
     }
 
     async function fetchRecommendations(categories) {
-      const response = await fetch('/api/recommend.js', {
+      const response = await fetch('/api/recommend.json', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -77,11 +73,10 @@ const genres = [
         body: JSON.stringify({ categories: categories.join(', ') }),
       });
       const data = await response.json();
-      const rawResponse = data.rawResponse;
-      const recommendations = data.recommendations;
+      const recommendations = data.recommendations.slice(0, 3); // Limit to 3 recommendations
       const recommendationsContainer = document.getElementById('recommendations');
-      const rawResponseContainer = document.getElementById('raw-response');
 
+      recommendationsContainer.innerHTML = ''; // Clear previous recommendations
       if (recommendations.length > 0) {
         recommendations.forEach(rec => {
           const [title, ...description] = rec.split(' And ');
@@ -91,12 +86,11 @@ const genres = [
             <img src="https://via.placeholder.com/150" alt="${title}" class="w-1/4 h-auto rounded-lg shadow-md">
             <div class="ml-4">
               <h3 class="text-xl font-bold">${title}</h3>
-              <p class="mt-2">${description.join(' And ')}</p>
+              <p class="mt-2 text-gray-600">${description.join(' And ')}</p>
             </div>
           `;
           recommendationsContainer.appendChild(recommendationElement);
         });
-        rawResponseContainer.innerText = rawResponse;
         document.getElementById('loading').classList.add('hidden');
         document.getElementById('results').classList.remove('hidden');
         document.getElementById('results').classList.add('fade-in');
@@ -120,6 +114,9 @@ const genres = [
     }
     .recommendation img {
       height: 90%;
+    }
+    .text-gray-600 {
+      color: #718096;
     }
   </style>
 </Layout>
