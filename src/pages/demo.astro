@@ -1,8 +1,6 @@
+<!-- I used ChatGPT to debug the code and fix the issues. I also used ChatGPT to explain specific parts of the Astro documentation, since I was unfamiliar with the terminology. -->
 ---
 import Layout from '../layouts/Layout.astro';
-import { loadEnv } from 'vite';
-
-const env = loadEnv(import.meta.env.MODE, process.cwd());
 
 const genres = [
   "Action", "Comedy", "Drama", "Horror", "Sci-Fi", "Thriller", "Adventure",
@@ -52,6 +50,30 @@ const genres = [
       });
 
       document.getElementById('analyser-button').addEventListener('click', sendToAnalyser);
+
+      // Dark mode toggle
+      const toggleSwitch = document.querySelector('.theme-switch input[type="checkbox"]');
+      const currentTheme = localStorage.getItem('theme') ? localStorage.getItem('theme') : null;
+
+      if (currentTheme) {
+        document.documentElement.setAttribute('data-theme', currentTheme);
+
+        if (currentTheme === 'dark') {
+          toggleSwitch.checked = true;
+        }
+      }
+
+      function switchTheme(e) {
+        if (e.target.checked) {
+          document.documentElement.setAttribute('data-theme', 'dark');
+          localStorage.setItem('theme', 'dark');
+        } else {
+          document.documentElement.setAttribute('data-theme', 'light');
+          localStorage.setItem('theme', 'light');
+        }   
+      }
+
+      toggleSwitch.addEventListener('change', switchTheme, false);
     });
 
     async function sendToAnalyser() {
@@ -91,16 +113,16 @@ const genres = [
         const recommendationsContainer = document.getElementById('recommendations');
         recommendationsContainer.innerHTML = ''; // Clear previous recommendations
 
-        for (let rec of cleanedRecommendations) {
+        cleanedRecommendations.forEach(async (rec) => {
           console.log('Processing Recommendation:', rec); // Debugging
-          const match = rec.match(/^([^()]+) \((\d{4})\) - (.+)$/);
-          if (!match) {
-            console.log('Failed to match recommendation:', rec); // Debugging
-            continue;
-          }
+          
+          // Extract the title and description
+          const titleMatch = rec.match(/^(.*?\))/); // Matches everything up to and including the first closing parenthesis
+          const title = titleMatch ? titleMatch[0].trim() : rec.trim();
+          const description = rec.replace(title, '').replace('-', '').trim(); // Remove the title from rec to get the description
 
-          const title = `${match[1]} (${match[2]})`; // Title and Year
-          const description = match[3]; // Description
+          console.log('Extracted Title:', title); // Debugging
+          console.log('Extracted Description:', description); // Debugging
 
           // Create the recommendation element with placeholder image
           const recommendationElement = document.createElement('div');
@@ -109,16 +131,17 @@ const genres = [
             <img src="https://via.placeholder.com/150" alt="${title}" class="w-1/4 h-auto rounded-lg shadow-md">
             <div class="ml-4">
               <h3 class="text-xl font-bold">${title}</h3>
-              <p class="mt-2 text-gray-600">${description}</p>
+              <p class="mt-2 text-gray-600 dark:text-gray-400">${description}</p>
             </div>
           `;
           recommendationsContainer.appendChild(recommendationElement);
 
-          // Fetch and update the poster image
-          fetchMoviePoster(match[1]).then(poster => {
+          // Extract the part before the first parenthesis for fetching the poster
+          const movieTitle = title.split('(')[0].trim(); 
+          fetchMoviePoster(movieTitle).then(poster => {
             recommendationElement.querySelector('img').src = poster;
           });
-        }
+        });
 
         document.getElementById('loading').classList.add('hidden');
         document.getElementById('results').classList.remove('hidden');
@@ -132,11 +155,16 @@ const genres = [
 
     async function fetchMoviePoster(title) {
       try {
-        const apiKey = env.VITE_OMDB_API_KEY; // Use the OMDB API key from environment variables
-        const response = await fetch(`https://www.omdbapi.com/?t=${encodeURIComponent(title)}&apikey=${apiKey}`);
+        const response = await fetch('/api/poster.json', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ title }),
+        });
         const data = await response.json();
-        console.log('OMDB API Response:', data); // Debugging
-        return data.Poster !== 'N/A' ? data.Poster : 'https://via.placeholder.com/150';
+        console.log('Poster API Response:', data); // Debugging
+        return data.poster;
       } catch (error) {
         console.error('Error fetching movie poster:', error);
         return 'https://via.placeholder.com/150';
@@ -161,6 +189,56 @@ const genres = [
     }
     .text-gray-600 {
       color: #718096;
+    }
+    .dark .text-gray-600 {
+      color: #A0AEC0;
+    }
+    .theme-switch-wrapper {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 16px;
+    }
+    .theme-switch {
+      display: inline-block;
+      height: 34px;
+      position: relative;
+      width: 60px;
+    }
+    .theme-switch input {
+      display: none;
+    }
+    .slider {
+      background-color: #ccc;
+      bottom: 0;
+      cursor: pointer;
+      left: 0;
+      position: absolute;
+      right: 0;
+      top: 0;
+      transition: .4s;
+    }
+    .slider:before {
+      background-color: #fff;
+      bottom: 4px;
+      content: "";
+      height: 26px;
+      left: 4px;
+      position: absolute;
+      transition: .4s;
+      width: 26px;
+    }
+    input:checked + .slider {
+      background-color: #2196F3;
+    }
+    input:checked + .slider:before {
+      transform: translateX(26px);
+    }
+    .slider.round {
+      border-radius: 34px;
+    }
+    .slider.round:before {
+      border-radius: 50%;
     }
   </style>
 </Layout>
