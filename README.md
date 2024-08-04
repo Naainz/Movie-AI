@@ -51,7 +51,7 @@ Follow these instructions to set up and run the project on your local machine.
    npm run dev
    ```
 
-2. Open your browser and navigate to `http://localhost:3000`.
+2. Open your browser and navigate to `http://localhost:3000` (or whichever link astro provides you.).
 
 ### Project Structure
 
